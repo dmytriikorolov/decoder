@@ -10,7 +10,7 @@ vector<vector<int> > readTable(const string &filename){
     ifstream inputFile(filename);
 
     if (!inputFile){
-        cout << "Can't open file named" << filename << endl;
+        cout << "Can't open file named " << filename << endl;
     }
     string line;
     while (getline(inputFile, line)){
@@ -26,29 +26,34 @@ vector<vector<int> > readTable(const string &filename){
     return table;
 }
 
-string decodeAscii(const vector<vector<int>> &table){
+pair<string, string> decodeAscii(const vector<vector<int>> &table, bool flip = false) {
     string answer;
+    string notAnswer;
     bool changed = false;
 
-    for (const auto &row : table){
-        for (const auto &element : row){
+    for (const auto &row : table) {
+        for (const auto &element : row) {
             int value = element;
-            if (value > 127){
+            if (value > 127) {
                 changed = true;
                 value %= 127;
-
             }
-            char c = static_cast<char>(value);
 
+            char c = static_cast<char>(value);
             answer.push_back(c);
+            if (flip){
+                char notC = static_cast<char>(~value);
+                notAnswer.push_back(notC);
+            }
+            // TODO: maybe create additional parameter that will maintain row structure.
         }
     }
 
-    if (changed){
+    if (changed) {
         cout << "Note: Some values in dataset were > 127 and have been changed to value mod 127. The text might not be decodable via ASCII" << endl;
     }
 
-    return answer;
+    return make_pair(answer, notAnswer);
 }
 
 string decodeUTF8(const vector<vector<int>> &table){
@@ -74,10 +79,14 @@ string decodeUTF8(const vector<vector<int>> &table){
     }
 }
 
-int main(){
-    string filename = "dataset.txt";
+int main() {
+    string filename = "/Users/dima/CLionProjects/decypher/dataset.txt";
     vector<vector<int> > table = readTable(filename);
-    string decodedMessage = decodeAscii(table);
-    cout << decodedMessage << endl;
+
+    pair<string, string> decoded = decodeAscii(table, true);
+    // TODO: maybe think about how to give this parameters when args
+    cout << "Decoded Message: " << endl << decoded.first << endl;
+    cout << "Bitwise NOT Decoded Message: " << endl << decoded.second << endl;
+
     return 0;
 }
